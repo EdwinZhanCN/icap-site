@@ -1,0 +1,3 @@
+[submodule "plugin"]
+	path = plugin
+	url = https://github.com/EdwinZhanCN/obsidian-icap-agent.git

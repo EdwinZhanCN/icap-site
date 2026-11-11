@@ -1,12 +1,13 @@
 // The ICAP Learning Agent site: a guide, the format reference, and the plugin's own interface shown
-// live, imported from ../src (the same Svelte components and stylesheet the plugin ships).
+// live, imported from plugin/src: the plugin repository as a git submodule (the same Svelte components and
+// stylesheet the plugin ships).
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 import svelte from "@astrojs/svelte";
 import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath } from "node:url";
 
-const plugin = fileURLToPath(new URL("../src", import.meta.url));
+const plugin = fileURLToPath(new URL("./plugin/src", import.meta.url));
 // The plugin's views import Obsidian's API; on the site they get a stand-in (src/demo/obsidian.ts).
 const obsidian = fileURLToPath(new URL("./src/demo/obsidian.ts", import.meta.url));
 
@@ -34,8 +35,7 @@ export default defineConfig({
 	],
 	vite: {
 		plugins: [tailwindcss()],
-		// The plugin's components resolve their packages from the repo root; one Svelte runtime for both.
+		// The plugin's components resolve their packages from this project's node_modules; one Svelte runtime for both.
 		resolve: { dedupe: ["svelte", "motion", "@codemirror/view", "@lucide/svelte", "marked"], alias: { "@plugin": plugin, obsidian } },
-		server: { fs: { allow: [".."] } },
 	},
 });

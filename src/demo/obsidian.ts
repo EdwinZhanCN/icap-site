@@ -72,9 +72,8 @@ export class TFile {
 }
 
 export class Notice {
-	constructor(message: string) {
-		console.info(message);
-	}
+	// The demo has no notices to show.
+	constructor(readonly message: string) {}
 }
 
 export function prepareFuzzySearch(query: string) {
@@ -104,6 +103,12 @@ function wikilinks(md: string): string {
 	});
 }
 
+/** The site's own rendered Markdown into an element: parsed by DOMParser (scripts in it never run), not assigned to innerHTML. */
+function setHtml(el: Element, html: string) {
+	const doc = new DOMParser().parseFromString(`<!doctype html><body>${html}`, "text/html");
+	el.replaceChildren(...Array.from(doc.body.childNodes));
+}
+
 /** `> [!type] title` blockquotes → Obsidian's callout markup. */
 function callouts(root: HTMLElement) {
 	for (const bq of Array.from(root.querySelectorAll("blockquote"))) {
@@ -113,7 +118,7 @@ function callouts(root: HTMLElement) {
 		const m = /^\[!([\w-]+)\]([+-]?)[ \t]*(.*?)(?:<br\s*\/?>\s*|\n|$)/s.exec(first.innerHTML);
 		if (!m) continue;
 		const type = m[1].toLowerCase();
-		first.innerHTML = first.innerHTML.slice(m[0].length);
+		setHtml(first, first.innerHTML.slice(m[0].length));
 		if (!first.innerHTML.trim()) first.remove();
 		const callout = document.createElement("div");
 		callout.className = "callout";
@@ -122,7 +127,7 @@ function callouts(root: HTMLElement) {
 		title.className = "callout-title";
 		const inner = document.createElement("div");
 		inner.className = "callout-title-inner";
-		inner.innerHTML = m[3] || type[0].toUpperCase() + type.slice(1);
+		setHtml(inner, m[3] || type[0].toUpperCase() + type.slice(1));
 		title.append(inner);
 		const content = document.createElement("div");
 		content.className = "callout-content";
@@ -137,7 +142,7 @@ export function renderMarkdown(md: string, el: HTMLElement) {
 	// a visual's source is code: links in it are not links
 	const parts = md.replace(/<!--[\s\S]*?-->/g, "").split(/(^```icap-ui[\s\S]*?^```)/m);
 	const html = marked.parse(parts.map((p, i) => (i % 2 ? p : wikilinks(p))).join(""), { async: false }) as string;
-	el.innerHTML = html;
+	setHtml(el, html);
 	callouts(el);
 	visuals(el);
 }
@@ -290,6 +295,12 @@ export function installDomHelpers() {
 	if (typeof HTMLElement === "undefined") return;
 	const p = HTMLElement.prototype as unknown as Record<string, unknown>;
 	if (p.setCssStyles) return;
+	// Node.instanceOf: Obsidian's cross-window instanceof.
+	Object.assign(Node.prototype, {
+		instanceOf(this: Node, type: abstract new (...args: never[]) => unknown) {
+			return this instanceof type;
+		},
+	});
 	const make = function (this: HTMLElement, tag: string, o?: ElInfo | string) {
 		const el = document.createElement(tag);
 		const info: ElInfo = typeof o === "string" ? { cls: o } : (o ?? {});

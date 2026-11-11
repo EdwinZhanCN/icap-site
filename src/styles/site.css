@@ -3,7 +3,7 @@
  * Obsidian supplies the variables that stylesheet reads; here Starlight's palette stands in for them,
  * so the components follow the site's light and dark themes the way they follow a vault's.
  */
-@import "../../../src/styles/main.css";
+@import "../../plugin/src/styles/main.css";
 
 /* ── Starlight in madder ink ── */
 :root {
